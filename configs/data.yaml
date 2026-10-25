@@ -1,0 +1,6 @@
+source: binance
+symbol: BTC/USDT
+interval: 1h
+data_type: spot
+start_date: "2020-01-01"
+output_file: "data/raw/btcusdt_1h.csv"
