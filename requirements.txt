@@ -1,0 +1,8 @@
+ccxt>=4.5.90
+ipykernel>=6.29
+matplotlib>=3.9
+numpy>=2.0
+pandas>=2.2
+PyYAML>=6.0
+scikit-learn>=1.6
+xgboost>=3.0

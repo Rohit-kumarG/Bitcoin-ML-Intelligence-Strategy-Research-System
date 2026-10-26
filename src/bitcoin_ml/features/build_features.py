@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 
@@ -29,6 +30,21 @@ def build_features(candles: pd.DataFrame) -> pd.DataFrame:
 
     # A one-hour return is valid only across consecutive hourly candles.
     df["return_1h"] = df["return_1h"].where(one_hour_step)
+
+    # Volume change, expressed as a change in log-volume to reduce skew.
+    df["volume_log_change_1h"] = (
+        np.log1p(df["volume"]) - np.log1p(df["volume"].shift(1))
+    ).where(one_hour_step)
+
+    # Shape of the current completed candle, scaled by its opening price.
+    df["candle_body_pct"] = (df["close"] - df["open"]) / df["open"]
+    df["candle_range_pct"] = (df["high"] - df["low"]) / df["open"]
+    df["upper_wick_pct"] = (
+        df["high"] - df[["open", "close"]].max(axis=1)
+    ) / df["open"]
+    df["lower_wick_pct"] = (
+        df[["open", "close"]].min(axis=1) - df["low"]
+    ) / df["open"]
 
     # Standard deviation of the latest 24 one-hour returns.
     # Keep it only if all 24 hourly transitions are consecutive.
