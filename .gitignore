@@ -15,3 +15,6 @@ logs/
 dist/
 build/
 *.egg-info/
+node_modules/
+dashboard/dist/
+catboost_info/

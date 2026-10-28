@@ -34,9 +34,39 @@ python .\src\bitcoin_ml\validation\final_futures_evaluation.py
 
 Do not tune a model or threshold using the final holdout results. The final period is reserved for a one-time evaluation.
 
+## Advanced ensemble workflow (maximum accuracy)
+
+The advanced pipeline adds 50+ features (technical indicators, funding-rate signals, multi-timeframe trends, cyclical time encoding) and trains a four-model ensemble (LightGBM + XGBoost + CatBoost + Random Forest) with Optuna hyperparameter tuning. High-confidence thresholding further filters predictions for maximum directional accuracy.
+
+```powershell
+python .\src\bitcoin_ml\data\download_binance_usdm.py
+$env:PYTHONPATH = (Get-Location).Path
+python -m src.bitcoin_ml.features.run_advanced_feature_pipeline
+python .\src\bitcoin_ml\validation\walk_forward_advanced.py
+python .\src\bitcoin_ml\validation\final_advanced_evaluation.py
+python -m src.bitcoin_ml.models.train_advanced_ensemble
+```
+
+The walk-forward script reports per-model and ensemble accuracy across chronological folds, plus a confidence-threshold analysis showing accuracy at various coverage levels. The final evaluation is a one-time holdout test.
+
 ## Spot research
 
 The original spot-data workflow and exploratory notebook remain available in `configs/`, `src/`, and `notebooks/`.
+
+## Local dashboard
+
+Train the separate OHLC regression artifact before starting the API:
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+python -m src.bitcoin_ml.models.train_futures_ohlc_regressor
+```
+
+This model estimates next-hour open, high, low, and close returns. The workflow selects between a no-change baseline and a Random Forest using chronological validation, reports final chronological test errors, and only then refits the production artifact. Price outputs remain uncertain estimates, not exact future prices.
+
+Start the FastAPI service and the React dashboard in separate PowerShell terminals. The dashboard shows the live estimate, exact UTC candle interval, data freshness, historical test metrics, backtest scenarios, monitoring data, and recorded live prediction outcomes. Its BTC candlestick chart polls Binance USD-M hourly candles, including the forming candle. The next-candle price box displays the separate OHLC regression model's estimated candle and direction-classifier probabilities side by side.
+
+See [dashboard/README.md](dashboard/README.md) for commands. The API loads the saved Futures model locally and fetches only completed public Binance Futures candles; it does not place orders.
 
 ## Generated data and artifacts
 
